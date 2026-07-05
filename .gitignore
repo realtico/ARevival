@@ -1,0 +1,21 @@
+# Binários e arquivos de compilação
+*.o
+*.out
+*.a
+*.so
+*.dll
+*.exe
+
+# Diretório de build
+build/
+bin/
+
+# Arquivos de editores e IDEs
+.vscode/
+.idea/
+*.swp
+*~
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
