@@ -27,4 +27,13 @@
 > `aventureiro/scripts/install-deps.sh` (checa/instala via `apt`/`dnf`/`pacman`/`brew`, com
 > confirmação antes de rodar qualquer coisa), com instruções por SO no `aventureiro/README.md`.
 
+- **Gerador de labirinto por sorteio independente de porta** — algoritmo alternativo ao atual
+  (árvore geradora DFS + portas extras, `map.c`, ver [Pacote 25](backlog/25-densidade-labirinto.md)):
+  sortear cada porta entre salas vizinhas de forma independente (mais perto da hipótese do
+  `handover_aventureiro_c.md` sobre como o original gerava o mapa) e rodar um passo de reparo de
+  conectividade (`mapa_totalmente_conectado()` já existe pra checar) unindo componentes
+  desconectados no final. Produziria uma distribuição de portas mais orgânica em vez do viés
+  "estrutura de árvore com atalhos por cima". Só vale a pena se ajustar
+  `chance_porta_extra_labirinto` (a solução aplicada no Pacote 25) não for suficiente.
+
 Guardar mais ideias aqui conforme surgirem durante a implementação dos pacotes atuais.

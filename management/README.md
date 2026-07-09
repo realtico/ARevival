@@ -67,6 +67,9 @@ P0 (scaffold) → P1 (dados JSON) → P2 (types/util) → P3 (data_loader)
 | 22 | [backlog/22-medicamentos-iniciais.md](backlog/22-medicamentos-iniciais.md) | S | P12 | [x] |
 | 23 | [backlog/23-fugir-nao-seguido.md](backlog/23-fugir-nao-seguido.md) | S | P13 | [x] |
 | 24 | [backlog/24-item-sala-nao-marcava-coletado.md](backlog/24-item-sala-nao-marcava-coletado.md) | S | P12 | [x] |
+| 25 | [backlog/25-densidade-labirinto.md](backlog/25-densidade-labirinto.md) | S | P4 | [ ] |
+| 26 | [backlog/26-barra-comandos.md](backlog/26-barra-comandos.md) | M | P11, P17 | [ ] |
+| 27 | [backlog/27-mapa-antes-da-descricao.md](backlog/27-mapa-antes-da-descricao.md) | S | P17, P20 | [ ] |
 
 ## Depois do backlog
 
