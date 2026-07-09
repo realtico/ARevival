@@ -58,7 +58,7 @@ P0 (scaffold) → P1 (dados JSON) → P2 (types/util) → P3 (data_loader)
 | 13 | [backlog/13-perseguicao-fiel.md](backlog/13-perseguicao-fiel.md) | M | P10 | [x] |
 | 14 | [backlog/14-mapa-ascii.md](backlog/14-mapa-ascii.md) | S | P10 | [x] |
 | 15 | [backlog/15-narrar-arma-tripulante.md](backlog/15-narrar-arma-tripulante.md) | S | P10 | [x] |
-| 16 | [backlog/16-bug-acentos-linux.md](backlog/16-bug-acentos-linux.md) | S | P10 | [ ] |
+| 16 | [backlog/16-bug-acentos-linux.md](backlog/16-bug-acentos-linux.md) | S | P10 | [x] |
 | 17 | [backlog/17-mapa-continuo.md](backlog/17-mapa-continuo.md) | M | P14 | [ ] |
 | 18 | [backlog/18-atalho-setas.md](backlog/18-atalho-setas.md) | S | P6a, P7 | [ ] |
 | 19 | [backlog/19-remover-espera-ajuda-mapa.md](backlog/19-remover-espera-ajuda-mapa.md) | S | P11, P14 | [ ] |

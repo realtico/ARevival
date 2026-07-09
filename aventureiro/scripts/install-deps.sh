@@ -61,16 +61,16 @@ tem_comando cc || tem_comando gcc || tem_comando clang || FALTANDO+=("compilador
 tem_comando make || FALTANDO+=("make")
 tem_comando pkg-config || FALTANDO+=("pkg-config")
 
-if tem_comando pkg-config && ! pkg-config --exists ncurses; then
-    FALTANDO+=("ncurses (dev headers)")
+if tem_comando pkg-config && ! pkg-config --exists ncursesw; then
+    FALTANDO+=("ncursesw (dev headers)")
 elif ! tem_comando pkg-config; then
-    FALTANDO+=("ncurses (dev headers)")
+    FALTANDO+=("ncursesw (dev headers)")
 fi
 
 tem_comando python3 || FALTANDO+=("python3")
 
 if [[ ${#FALTANDO[@]} -eq 0 ]]; then
-    verde "Tudo certo: compilador C, make, pkg-config e ncurses ja estao instalados."
+    verde "Tudo certo: compilador C, make, pkg-config e ncursesw ja estao instalados."
 else
     amarelo "Faltando: ${FALTANDO[*]}"
     echo

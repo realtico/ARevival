@@ -1,7 +1,7 @@
 CC := cc
 CFLAGS := -std=c11 -Wall -Wextra -Werror -g
-NCURSES_CFLAGS := $(shell pkg-config --cflags ncurses)
-NCURSES_LIBS := $(shell pkg-config --libs ncurses)
+NCURSES_CFLAGS := $(shell pkg-config --cflags ncursesw)
+NCURSES_LIBS := $(shell pkg-config --libs ncursesw)
 LDLIBS :=
 SRC_DIR := src
 BUILD_DIR := build

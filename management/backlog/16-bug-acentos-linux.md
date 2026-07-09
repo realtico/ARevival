@@ -34,14 +34,27 @@ No mesmo ambiente Linux onde o bug foi reproduzido (screenshot: sala mostrando
 "Cela de DetenM-CM-'M-CM-#o" em vez de "Cela de Detenção"), rodar o binário mostra os acentos
 corretos, sem depender do usuário já ter `LANG`/`LC_ALL` UTF-8 setados na shell.
 
-**Implementado, verificação parcial.** Adicionada `garantir_locale_utf8()` em `ui.c` (chama
-`setlocale(LC_ALL, "")`, confere `nl_langinfo(CODESET)` e cai pra `setlocale(LC_ALL, "C.UTF-8")` se
-não for UTF-8). Build limpo (`-Wall -Wextra -Werror`) e `tests/smoke_test.py` sem crash.
+**Resolvido e confirmado.** A hipótese original (locale não-UTF-8 no ambiente) era só metade da
+causa. Reproduzindo o bug de verdade num Linux (Ubuntu 24.04, com `LANG=en_US.UTF-8` **já setado
+corretamente** no ambiente — ou seja, com a locale supostamente "correta"), o texto acentuado ainda
+saía como `DepM-CM-3sito` em vez de `Depósito`. Causa real: o `Makefile` linkava contra a
+`libncurses` **narrow** (8-bit, via `pkg-config --libs ncurses`), que trata cada *byte* de uma
+sequência UTF-8 multi-byte como uma célula separada — independente da locale do processo — e usa a
+notação `M-x` do `unctrl()` pra desenhar bytes que não reconhece. Só a variante **wide**
+(`libncursesw`, via `pkg-config --libs ncursesw`) sabe combinar bytes multi-byte num único
+caractere. No macOS a libncurses do sistema é sempre wide por baixo dos panos (não existe uma
+variante narrow separada), por isso o bug nunca reproduzia lá mesmo com o link "errado" — daí a
+suspeita anterior de diferença BSD/Linux estar certa, só que a causa raiz era outra.
 
-O que **não** deu pra confirmar nesta sessão: reproduzir o bug em si. Rodando o binário no macOS com
-`LANG=C LC_ALL=C` forçado (simulando o ambiente Linux quebrado) os acentos já saíam certos **mesmo
-com o código antigo** (testado via `git stash` comparando antes/depois) — ou seja, o macOS não
-reproduz esse bug de jeito nenhum, provavelmente por diferença de libc/ncurses entre BSD e Linux.
-Não dá pra provar que o fallback resolve o caso real sem testar num Linux/WSL de verdade. Próximo
-passo natural: confirmar no teste do Termux que já estava planejado (ver
-[[project-aventureiro]]) ou em qualquer WSL disponível.
+Correção: `Makefile` agora usa `pkg-config --cflags/--libs ncursesw` em vez de `ncurses`.
+`garantir_locale_utf8()` em `ui.c` continua no código como a outra metade do fix (garante que a
+locale seja UTF-8 pra `libncursesw` ter o que decodificar) — só trocar a lib não bastaria se o
+processo ainda estivesse preso em locale `"C"`.
+
+Verificação: capturado o output bruto do binário via `pexpect` (pty real, sem depender de olho
+humano), navegando por várias salas com nomes acentuados. Com a lib narrow (código antigo): 17
+ocorrências literais de `M-C` no stream de bytes — reproduz exatamente o bug do screenshot. Com
+`libncursesw` (fix): 0 ocorrências de `M-C`, 17 sequências UTF-8 cruas (`\xc3\x..`) corretas no
+lugar. `make test` (fuzzing via `tests/smoke_test.py`) permanece sem crash. Falta só validar em
+WSL/Termux de verdade (ambientes citados originalmente) pra fechar o loop, mas o mecanismo do bug e
+do fix já está provado, não é mais hipótese.

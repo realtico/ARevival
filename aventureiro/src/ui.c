@@ -21,16 +21,25 @@ static WINDOW *janela_log = NULL;
 /*
  * Pacote 16: setlocale(LC_ALL, "") so' resolve pra UTF-8 se o AMBIENTE ja'
  * tiver uma locale .UTF-8 exportada (LANG/LC_ALL/LC_CTYPE) - ela nao forca
- * UTF-8, so' pergunta ao SO qual locale usar. No macOS o terminal quase
- * sempre ja' exporta algo tipo en_US.UTF-8, entao funciona de primeira. Em
- * Linux/WSL minimos e' comum a shell nao ter isso setado (ou a imagem nao
- * ter nenhuma locale UTF-8 gerada), e setlocale cai pra "C" silenciosamente
- * - sem erro, so' sem UTF-8. Dai' o restante do problema (comentario de
- * ui_iniciar abaixo) se manifesta: nomes acentuados saem como bytes crus
- * (ex. "DetenM-CM-'M-CM-#o" em vez de "Detencao"). Se o ambiente falhar,
- * tenta "C.UTF-8" explicitamente - locale UTF-8 minima que a glibc traz
- * pronta em praticamente toda distro Linux moderna, sem precisar de
- * locale-gen nem de nada exportado pelo usuario.
+ * UTF-8, so' pergunta ao SO qual locale usar. Se o ambiente falhar, tenta
+ * "C.UTF-8" explicitamente - locale UTF-8 minima que a glibc traz pronta em
+ * praticamente toda distro Linux moderna, sem precisar de locale-gen nem de
+ * nada exportado pelo usuario.
+ *
+ * Isso resolve so' metade do bug, e por si so' NAO era suficiente: em
+ * Linux/Ubuntu (nativo ou WSL), mesmo com LANG=en_US.UTF-8 corretamente
+ * setado no ambiente, o texto acentuado ainda saia como "DepM-CM-3sito" em
+ * vez de "Depósito". Causa real, confirmada reproduzindo o bug neste
+ * repositorio: o Makefile linkava contra a libncurses "narrow" (8-bit, via
+ * `pkg-config ncurses`), que trata cada BYTE de uma sequencia UTF-8
+ * multi-byte como uma celula separada, independente da locale do processo -
+ * so' a variante "wide" (`libncursesw`, `pkg-config ncursesw`) sabe
+ * combinar bytes multi-byte num unico caractere. No macOS a libncurses do
+ * sistema e' sempre wide por baixo dos panos, entao o bug nunca apareceu
+ * la' mesmo com o link "errado". A correcao ficou no Makefile (usar
+ * `ncursesw`); garantir_locale_utf8() continua necessaria como a outra
+ * metade (garantir que a locale seja UTF-8 pra libncursesw ter o que
+ * decodificar).
  */
 static void garantir_locale_utf8(void) {
     setlocale(LC_ALL, "");
@@ -43,16 +52,10 @@ static void garantir_locale_utf8(void) {
 
 void ui_iniciar(void) {
     /*
-     * Sem locale UTF-8, o ncurses fica preso na locale "C" e conta cada
-     * byte de um caractere UTF-8 multi-byte (ex.: "ã", "ô" - presentes em
-     * varios nomes de arma/sala/tripulante nos JSONs) como se fosse uma
-     * coluna inteira na tela, em vez de saber que 2 bytes formam 1 unico
-     * caractere visivel. O terminal ainda decodifica e desenha o glifo
-     * certo, mas a contagem interna do ncurses (usada pra saber o que
-     * redesenhar/apagar a cada frame) fica errada, deixando sobras de tela
-     * ao trocar entre nomes com quantidades diferentes de acentos (ex.:
-     * "Pistola Laser" -> "Arpão Iônico"). garantir_locale_utf8() resolve
-     * isso na raiz, sem precisar mexer nos dados.
+     * garantir_locale_utf8() cobre a metade "locale" do bug do Pacote 16
+     * (ver comentario acima da funcao). A outra metade - libncurses
+     * "narrow" vs "wide" - e' resolvida no Makefile (link contra
+     * ncursesw), nao aqui.
      */
     garantir_locale_utf8();
     initscr();
