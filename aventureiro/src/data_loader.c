@@ -106,6 +106,7 @@ static bool carregar_config(const char *dir, Config *cfg) {
     ok = ok && copiar_int(jogador, "vida_inicial", &cfg->vida_inicial);
     ok = ok && copiar_int(jogador, "energia_inicial", &cfg->energia_inicial);
     ok = ok && copiar_int(jogador, "dinheiro_inicial", &cfg->dinheiro_inicial);
+    ok = ok && copiar_int(jogador, "medicamentos_iniciais", &cfg->medicamentos_iniciais);
 
     const cJSON *chances = cJSON_GetObjectItemCaseSensitive(raiz, "chances_percentual");
     ok = ok && cJSON_IsObject(chances);

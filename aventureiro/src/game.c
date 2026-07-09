@@ -8,30 +8,29 @@
 void game_tela_titulo(void) {
     ui_limpar_log();
     ui_log("::O AVENTUREIRO::");
-    ui_log("Em busca de aventuras, voce se teleporta clandestinamente a bordo de uma");
-    ui_log("nave cargueira cuja tripulacao e formada por seres exoticos de diversos");
-    ui_log("planetas. Seu objetivo e acumular todo o dinheiro que voce conseguir,");
-    ui_log("vasculhando as salas da nave. Cuidado, a tripulacao podera ter as mais");
-    ui_log("diversas reacoes, e ate por sua vida em perigo. Para sobreviver voce");
-    ui_log("dispoe de uma lanterna, uma pistola laser, um escudo e de \"Twin\", seu");
-    ui_log("tradutor e conselheiro eletronico.");
+    ui_log("Em busca de aventuras, você se teleporta clandestinamente a bordo de uma");
+    ui_log("nave cargueira cuja tripulação é formada por seres exóticos de diversos");
+    ui_log("planetas. Seu objetivo é acumular todo o dinheiro que você conseguir,");
+    ui_log("vasculhando as salas da nave. Cuidado, a tripulação poderá ter as mais");
+    ui_log("diversas reações, e até por sua vida em perigo. Para sobreviver você");
+    ui_log("dispõe de uma lanterna, uma pistola laser, um escudo e de \"Twin\", seu");
+    ui_log("tradutor e conselheiro eletrônico.");
     ui_log(" ");
-    ui_log("Voce comeca com o nivel maximo de energia vital e de energia.");
+    ui_log("Você começa com o nível máximo de energia vital e de energia.");
     ui_log(" ");
     ui_log("Existem 10 comandos:");
     ui_log("0 Mudar de sala      1 Atacar             2 Fugir");
     ui_log("3 Trocar de arma     4 Comunicar-se       5 Escudo (lig/des)");
-    ui_log("6 Usar medicamentos  7 Situacao           8 Examinar a sala");
+    ui_log("6 Usar medicamentos  7 Situação           8 Examinar a sala");
     ui_log("9 Acionar teleporte");
     ui_log(" ");
-    ui_log("Extra (fora dos 10 comandos originais): M mostra o mapa das salas");
-    ui_log("visitadas, H reexibe esta lista de comandos.");
+    ui_log("Extra (fora dos 10 comandos originais): H reexibe esta lista de comandos.");
     ui_log(" ");
-    ui_log("Sempre que voce utilizar algum dos seus equipamentos (lanterna, escudo");
-    ui_log("ou arma) havera um gasto nas suas reservas de energia. Para terminar o");
-    ui_log("jogo voce deve retornar a Sala de Teleporte e acionar o teleporte (9).");
+    ui_log("Sempre que você utilizar algum dos seus equipamentos (lanterna, escudo");
+    ui_log("ou arma) haverá um gasto nas suas reservas de energia. Para terminar o");
+    ui_log("jogo você deve retornar à Sala de Teleporte e acionar o teleporte (9).");
     ui_log(" ");
-    ui_log("Boa sorte... (pressione uma tecla para comecar)");
+    ui_log("Boa sorte... (pressione uma tecla para começar)");
     ui_aguardar_tecla();
     ui_limpar_log();
 }
@@ -58,6 +57,9 @@ static int ler_opcao(const char *teclas) {
 static void narrar(const Resultado *res) {
     for (int i = 0; i < res->num_mensagens; i++) {
         ui_log("%s", res->mensagens[i]);
+        if (res->pausa_apos[i]) {
+            ui_pausar_dramatico(); /* Pacote 20 */
+        }
     }
 }
 
@@ -85,13 +87,13 @@ static Resultado comando_mover_interativo(Jogador *jogador, Mapa *mapa, const Ba
     }
     teclas[n] = '\0';
 
-    ui_log("Para que lado voce quer se movimentar (%s)?", teclas);
+    ui_log("Para que lado você quer se movimentar (%s)?", teclas);
     int escolha = ler_opcao(teclas);
     return comando_mover(jogador, mapa, bd, (Direcao)direcoes_disponiveis[escolha]);
 }
 
 static Resultado comando_trocar_arma_interativo(Jogador *jogador, const BaseDeDados *bd) {
-    ui_log("Voce tem as seguintes armas:");
+    ui_log("Você tem as seguintes armas:");
     for (int i = 0; i < jogador->num_armas_obtidas; i++) {
         const Arma *arma = &bd->armas[jogador->armas_obtidas[i]];
         ui_log("%d. %s", i + 1, arma->nome);
@@ -102,14 +104,14 @@ static Resultado comando_trocar_arma_interativo(Jogador *jogador, const BaseDeDa
 }
 
 static Resultado comando_comunicar_interativo(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd) {
-    ui_log("Quer subornar, irritar, ou ser amigavel (S/I/A)?");
+    ui_log("Quer subornar, irritar, ou ser amigável (S/I/A)?");
     static const AcaoComunicar OPCOES[3] = { COMUNICAR_SUBORNAR, COMUNICAR_IRRITAR, COMUNICAR_AMIGAVEL };
     int escolha = ler_opcao("SIA");
     AcaoComunicar acao = OPCOES[escolha];
 
     int valor_oferecido = 0;
     if (acao == COMUNICAR_SUBORNAR) {
-        ui_log("Quanto voce quer oferecer?");
+        ui_log("Quanto você quer oferecer?");
         valor_oferecido = ui_ler_numero();
     }
     return comando_comunicar(jogador, mapa, bd, acao, valor_oferecido);
@@ -134,7 +136,7 @@ static bool comando_examinar_sala_interativo(Jogador *jogador, Mapa *mapa, const
     narrar(&descricao);
 
     if (atual->escura) {
-        ui_log("Esta muito escuro aqui.");
+        ui_log("Está muito escuro aqui.");
         ui_log("Quer examinar a sala no escuro, utilizar a Lanterna, ou Desistir (E/L/D)?");
         int escolha = ler_opcao("ELD");
         if (escolha == 2) {
@@ -154,26 +156,12 @@ static void mostrar_ajuda(void) {
     ui_log("Existem 10 comandos:");
     ui_log("0 Mudar de sala      1 Atacar             2 Fugir");
     ui_log("3 Trocar de arma     4 Comunicar-se       5 Escudo (lig/des)");
-    ui_log("6 Usar medicamentos  7 Situacao           8 Examinar a sala");
+    ui_log("6 Usar medicamentos  7 Situação           8 Examinar a sala");
     ui_log("9 Acionar teleporte");
     ui_log(" ");
-    ui_log("Extra: M mostra o mapa das salas visitadas, H reexibe esta ajuda.");
-    ui_log(" ");
-    ui_log("(pressione uma tecla para continuar)");
-    ui_aguardar_tecla();
-}
-
-/*
- * Mapa (m/M, Pacote 14): mostra o grid das salas ja visitadas -
- * conveniencia de UI fora dos dez comandos originais (o jogo original nao
- * tinha visualizacao de mapa, secao 7 do handover); nao consome rodada.
- */
-static void mostrar_mapa(const Jogador *jogador, const Mapa *mapa) {
-    ui_limpar_log();
-    ui_desenhar_mapa(mapa, jogador);
-    ui_log(" ");
-    ui_log("(pressione uma tecla para continuar)");
-    ui_aguardar_tecla();
+    ui_log("Extra: H reexibe esta ajuda. O mapa das salas visitadas fica sempre");
+    ui_log("visível no painel à direita. As setas do teclado movem direto na");
+    ui_log("direção, sem precisar digitar 0 antes.");
 }
 
 FimDeJogo game_loop(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd, const Config *cfg) {
@@ -181,17 +169,43 @@ FimDeJogo game_loop(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd, const C
      * entrar_em_sala, entao marca visitada aqui (Pacote 14). */
     mapa->celulas[jogador->linha][jogador->coluna].visitada = true;
 
+    /* Pacote 20: tratar o inicio como uma "entrada" tambem, narrando tipo
+     * de sala + saidas antes do primeiro comando - antes o jogador comecava
+     * o jogo sem ver nenhuma descricao da sala onde esta. A Sala de
+     * Teleporte nunca tem tripulante (nasce "segura", ver map.c), entao
+     * isso nao dispara a sequencia de pausas de apresentacao. */
+    Resultado descricao_inicial;
+    memset(&descricao_inicial, 0, sizeof(descricao_inicial));
+    combat_narrar_sala_atual(jogador, mapa, bd, &descricao_inicial);
+    narrar(&descricao_inicial);
+
     for (;;) {
         ui_desenhar_hud(jogador, bd);
+        ui_desenhar_mapa(mapa, jogador); /* painel sempre visivel, Pacote 17 */
         int comando = ui_ler_comando();
 
         if (comando == -1) {
             mostrar_ajuda(); /* pseudo-comando: nao consome rodada */
             continue;
         }
-        if (comando == -2) {
-            mostrar_mapa(jogador, mapa); /* pseudo-comando: nao consome rodada */
-            continue;
+
+        /*
+         * Atalho de seta (Pacote 18): -3..-6 ja' veem de ui_ler_comando()
+         * como uma direcao escolhida, entao pula comando_mover_interativo
+         * (que pediria a direcao de novo) e chama comando_mover() direto -
+         * se nao houver porta nesse sentido, o proprio comando_mover ja'
+         * devolve a mensagem "Nao ha saida pelo ..." (antes so' alcancavel
+         * via chamada direta, nunca pelo prompt manual, que so' oferece as
+         * direcoes com porta de fato).
+         */
+        Direcao direcao_atalho = NORTE;
+        bool eh_atalho_direcao = true;
+        switch (comando) {
+            case -3: direcao_atalho = NORTE; break;
+            case -4: direcao_atalho = SUL; break;
+            case -5: direcao_atalho = LESTE; break;
+            case -6: direcao_atalho = OESTE; break;
+            default: eh_atalho_direcao = false; break;
         }
 
         /* Limpar a tela a cada comando e' fiel ao original (linha 600:
@@ -202,40 +216,44 @@ FimDeJogo game_loop(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd, const C
         Resultado res;
         bool tem_resultado = true;
 
-        switch (comando) {
-            case 0:
-                res = comando_mover_interativo(jogador, mapa, bd);
-                break;
-            case 1:
-                res = comando_atacar(jogador, mapa, bd);
-                break;
-            case 2:
-                res = comando_fugir(jogador, mapa, bd);
-                break;
-            case 3:
-                res = comando_trocar_arma_interativo(jogador, bd);
-                break;
-            case 4:
-                res = comando_comunicar_interativo(jogador, mapa, bd);
-                break;
-            case 5:
-                res = comando_escudo(jogador);
-                break;
-            case 6:
-                res = comando_usar_medicamento(jogador, mapa, bd, cfg);
-                break;
-            case 7:
-                res = comando_situacao(jogador, bd);
-                break;
-            case 8:
-                tem_resultado = comando_examinar_sala_interativo(jogador, mapa, bd, cfg, &res);
-                if (!tem_resultado) {
-                    ui_log("Voce desistiu.");
-                }
-                break;
-            default: /* case 9 */
-                res = comando_acionar_teleporte(jogador, mapa);
-                break;
+        if (eh_atalho_direcao) {
+            res = comando_mover(jogador, mapa, bd, direcao_atalho);
+        } else {
+            switch (comando) {
+                case 0:
+                    res = comando_mover_interativo(jogador, mapa, bd);
+                    break;
+                case 1:
+                    res = comando_atacar(jogador, mapa, bd);
+                    break;
+                case 2:
+                    res = comando_fugir(jogador, mapa, bd);
+                    break;
+                case 3:
+                    res = comando_trocar_arma_interativo(jogador, bd);
+                    break;
+                case 4:
+                    res = comando_comunicar_interativo(jogador, mapa, bd);
+                    break;
+                case 5:
+                    res = comando_escudo(jogador);
+                    break;
+                case 6:
+                    res = comando_usar_medicamento(jogador, mapa, bd, cfg);
+                    break;
+                case 7:
+                    res = comando_situacao(jogador, bd);
+                    break;
+                case 8:
+                    tem_resultado = comando_examinar_sala_interativo(jogador, mapa, bd, cfg, &res);
+                    if (!tem_resultado) {
+                        ui_log("Você desistiu.");
+                    }
+                    break;
+                default: /* case 9 */
+                    res = comando_acionar_teleporte(jogador, mapa);
+                    break;
+            }
         }
 
         if (!tem_resultado) {
@@ -244,6 +262,7 @@ FimDeJogo game_loop(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd, const C
 
         narrar(&res);
         ui_desenhar_hud(jogador, bd);
+        ui_desenhar_mapa(mapa, jogador);
 
         /*
          * Perseguicao (Pacote 13): um tripulante fugiu com sucesso da sala
@@ -258,6 +277,7 @@ FimDeJogo game_loop(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd, const C
                 Resultado perseguicao = combate_seguir_tripulante_fugido(jogador, mapa, bd, res.trilha_fuga, res.trilha_fuga_tamanho);
                 narrar(&perseguicao);
                 ui_desenhar_hud(jogador, bd);
+                ui_desenhar_mapa(mapa, jogador);
             }
         }
 
@@ -272,8 +292,8 @@ FimDeJogo game_loop(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd, const C
 
 void game_tela_morte(void) {
     ui_limpar_log();
-    ui_log("Voce foi mortalmente ferido.");
-    ui_log("A tripulacao roubou-lhe tudo e desintegrou seu corpo.");
+    ui_log("Você foi mortalmente ferido.");
+    ui_log("A tripulação roubou-lhe tudo e desintegrou seu corpo.");
     ui_log(" ");
     ui_log("Que azar... fim de jogo.");
     ui_aguardar_tecla();
@@ -281,13 +301,13 @@ void game_tela_morte(void) {
 
 void game_tela_vitoria(const Jogador *jogador, const BaseDeDados *bd) {
     ui_limpar_log();
-    ui_log("Voce voltou via teleporte.");
-    ui_log("Voce tem:");
+    ui_log("Você voltou via teleporte.");
+    ui_log("Você tem:");
     ui_log("Dinheiro: %d", jogador->dinheiro);
     for (int i = 0; i < jogador->num_armas_obtidas; i++) {
         ui_log("- %s", bd->armas[jogador->armas_obtidas[i]].nome);
     }
     ui_log(" ");
-    ui_log("Parabens, voce venceu!");
+    ui_log("Parabéns, você venceu!");
     ui_aguardar_tecla();
 }

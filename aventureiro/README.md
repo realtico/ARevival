@@ -34,14 +34,17 @@ aventureiro/
   data/     -> config.json, rooms.json, weapons.json, crew.json (Pacote 1)
   src/      -> código C + cJSON vendorizado (Pacotes 2+)
   scripts/  -> install-deps.sh (checa/instala dependências de build)
-  Makefile
+  CMakeLists.txt
 ```
 
 ## Requisitos
 
-- Compilador C (gcc ou clang) e `make`.
-- `pkg-config` e os headers de desenvolvimento do `ncurses`.
-- Python 3 + `pip` (opcional — só para `make test`, que usa `pexpect`).
+- Compilador C (gcc ou clang) e `cmake` (≥ 3.16).
+- `pkg-config` e os headers de desenvolvimento do `ncursesw` (variante *wide* do ncurses — o
+  `CMakeLists.txt` falha o `configure` com uma mensagem clara se só a variante *narrow* estiver
+  disponível, ver [Pacote 16](../management/backlog/16-bug-acentos-linux.md)).
+- Python 3 + `pip` (opcional — só para o alvo `test`, que usa `pexpect`; sem python3 o jogo
+  continua compilando normalmente, só o teste automatizado fica indisponível).
 
 ### Instalação rápida (recomendado)
 
@@ -59,39 +62,41 @@ coisa — não instala nada silenciosamente.
 
 ```
 sudo apt-get update
-sudo apt-get install -y build-essential pkg-config libncurses-dev python3 python3-pip
+sudo apt-get install -y build-essential cmake pkg-config libncurses-dev python3 python3-pip
 ```
 
 **Linux (Fedora/RHEL e derivados, `dnf`):**
 
 ```
-sudo dnf install -y gcc make pkgconf-pkg-config ncurses-devel python3 python3-pip
+sudo dnf install -y gcc make cmake pkgconf-pkg-config ncurses-devel python3 python3-pip
 ```
 
 **Linux (Arch e derivados, `pacman`):**
 
 ```
-sudo pacman -S --needed base-devel pkgconf ncurses python python-pip
+sudo pacman -S --needed base-devel cmake pkgconf ncurses python python-pip
 ```
 
 **macOS:**
 
 ```
-xcode-select --install          # compilador C, make (Xcode Command Line Tools)
-brew install pkg-config ncurses # pkg-config e headers de ncurses (via Homebrew: https://brew.sh)
+xcode-select --install                 # compilador C, make (Xcode Command Line Tools)
+brew install cmake pkg-config ncurses  # cmake, pkg-config e headers de ncurses (via Homebrew: https://brew.sh)
 ```
 
-**Windows:** sem suporte nativo (o projeto depende de `ncurses`/`pkg-config`/Makefile POSIX) — use o
+**Windows:** sem suporte nativo (o projeto depende de `ncursesw`/`pkg-config`) — use o
 [WSL](https://learn.microsoft.com/windows/wsl/) com uma distro Linux e siga as instruções acima.
 
 ## Build e execução
 
 ```
-make            # compila
-make run        # compila e joga (equivalente a ./build/aventureiro)
-make clean
-make test       # fuzzing automatizado via pexpect (requer python3-pexpect, ver Requisitos acima)
+cmake -B build              # configura (falha cedo, com mensagem clara, se faltar algum pré-requisito)
+cmake --build build         # compila -> ./build/aventureiro
+./build/aventureiro         # joga
+ctest --test-dir build --output-on-failure   # fuzzing automatizado via pexpect (requer python3-pexpect, ver Requisitos acima)
 ```
+
+Pra recompilar do zero: `rm -rf build && cmake -B build && cmake --build build`.
 
 `./build/aventureiro [--data-dir DIR] [--seed N]` aceita `--data-dir` (default `data`) e `--seed`
 (default: relógio do sistema, útil para reproduzir uma partida).

@@ -18,8 +18,8 @@
 
 static void imprimir_uso(const char *nome_programa) {
     fprintf(stderr, "Uso: %s [--data-dir DIR] [--seed N]\n", nome_programa);
-    fprintf(stderr, "  --data-dir DIR   diretorio com config.json/rooms.json/weapons.json/crew.json (default: data)\n");
-    fprintf(stderr, "  --seed N         semente do gerador aleatorio (default: relogio do sistema)\n");
+    fprintf(stderr, "  --data-dir DIR   diretório com config.json/rooms.json/weapons.json/crew.json (default: data)\n");
+    fprintf(stderr, "  --seed N         semente do gerador aleatório (default: relógio do sistema)\n");
 }
 
 int main(int argc, char **argv) {
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
     Mapa mapa = gerar_mapa(&cfg, &bd);
     Jogador jogador = jogador_iniciar(&cfg, &mapa);
 
-    ui_iniciar();
+    ui_iniciar(mapa.tamanho);
     game_tela_titulo();
     FimDeJogo fim = game_loop(&jogador, &mapa, &bd, &cfg);
     if (fim == JOGO_FIM_MORTE) {

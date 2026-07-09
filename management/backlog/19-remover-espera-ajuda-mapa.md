@@ -31,3 +31,12 @@ sem o texto extra "(pressione uma tecla para continuar)" nem uma espera percept�
 tecla que o jogador já ia apertar pra dar o próximo comando. Mesmo teste pra `M`, se ainda existir.
 `tests/smoke_test.py` continua passando (o fuzzer já manda teclas aleatórias em sequência, incluindo
 H/M, então cobre esse fluxo).
+
+**Resolvido e confirmado.** O Pacote 17 (implementado antes deste) já tinha removido `M`/
+`mostrar_mapa()` inteiro, então este pacote se aplicou só a `mostrar_ajuda()` (`game.c`): removidas
+as duas linhas finais (`ui_log(" ")` + `ui_log("(pressione uma tecla para continuar)")`) e o
+`ui_aguardar_tecla()`. Nada mais dependia do valor de retorno descartado.
+
+Verificado com pexpect+pyte (seed 1): apertar `H` mostra a ajuda sem o texto extra, e a tecla
+seguinte (`7`, Situação) já é processada na hora, sem precisar de um toque a mais antes. `ctest`
+rodado 3x seguidas sem falha.

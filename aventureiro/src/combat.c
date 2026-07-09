@@ -105,23 +105,33 @@ static void log_msg(Resultado *r, const char *formato, ...) {
     r->num_mensagens++;
 }
 
+/* Marca a ultima mensagem preenchida (Pacote 20) pra ter uma pausa
+ * dramatica depois dela, antes da proxima - chamar logo apos o log_msg(...)
+ * que deve pausar. No-op se ainda nao houver mensagem nenhuma (nunca
+ * deveria acontecer na pratica, so' evita indice -1). */
+static void marcar_pausa(Resultado *r) {
+    if (r->num_mensagens > 0) {
+        r->pausa_apos[r->num_mensagens - 1] = true;
+    }
+}
+
 /* Acidente no escuro (linha 7000): chance de se machucar ao examinar uma
  * sala escura sem lanterna. Dano de 1 a 5, mensagem varia por gravidade. */
 static void acidente_no_escuro(Jogador *jogador, Resultado *r) {
     int dano = sorteio_intervalo(1, 5);
     if (dano == 1) {
-        log_msg(r, "No escuro, voce bateu na parede.");
+        log_msg(r, "No escuro, você bateu na parede.");
     } else if (dano <= 3) {
-        log_msg(r, "Voce caiu no escuro e quebrou seu pe.");
+        log_msg(r, "Você caiu no escuro e quebrou seu pé.");
     } else {
-        log_msg(r, "Voce caiu no escuro e fraturou a perna.");
+        log_msg(r, "Você caiu no escuro e fraturou a perna.");
     }
-    log_msg(r, "Voce perdeu %d ponto%s de vida.", dano, dano > 1 ? "s" : "");
+    log_msg(r, "Você perdeu %d ponto%s de vida.", dano, dano > 1 ? "s" : "");
 
     jogador->vida -= dano;
     if (jogador->vida <= 0) {
         jogador->vida = 0;
-        log_msg(r, "Que azar, voce morreu.");
+        log_msg(r, "Que azar, você morreu.");
         r->jogador_morreu = true;
     }
 }
@@ -137,7 +147,7 @@ static void narrar_sala(const Mapa *mapa, const BaseDeDados *bd, int linha, int 
     const TipoSala *tipo = &bd->salas[celula->id_tipo_sala];
     log_msg(r, "Sala tipo: %s", tipo->nome);
 
-    char saidas[MAX_TAMANHO_MENSAGEM] = "Saidas: ";
+    char saidas[MAX_TAMANHO_MENSAGEM] = "Saídas: ";
     bool alguma = false;
     for (int d = 0; d < NUM_DIRECOES; d++) {
         if (celula->conectada[d]) {
@@ -158,10 +168,18 @@ static void narrar_sala(const Mapa *mapa, const BaseDeDados *bd, int linha, int 
         /* Linha 6270 do original: a arma do tripulante ja e' revelada na
          * apresentacao, antes de qualquer ataque ("...ARMADO COM [arma]..."). */
         const Arma *arma = &bd->armas[tripulante->id_arma];
-        log_msg(r, "Ha alguem aqui: %s, armado com %s. \"%s.\"", tripulante->nome, arma->nome,
+        /* Pacote 20: 3 falas espacadas por pausa, igual as linhas
+         * 6150/6210/6270 do original (a revelacao final e' atribuida a
+         * "TWIN", o tradutor/conselheiro eletronico apresentado na tela de
+         * titulo - nao narracao impessoal). */
+        log_msg(r, "Há alguém...");
+        marcar_pausa(r);
+        log_msg(r, "Há alguma coisa aqui...");
+        marcar_pausa(r);
+        log_msg(r, "TWIN reporta... \"É um %s, armado com %s. %s.\"", tripulante->nome, arma->nome,
                 tripulante->frase);
     } else {
-        log_msg(r, "Nao ha ninguem aqui.");
+        log_msg(r, "Não há ninguém aqui.");
     }
 }
 
@@ -173,7 +191,7 @@ void combat_narrar_sala_atual(const Jogador *jogador, const Mapa *mapa, const Ba
  * de tripulante; drena energia do escudo se ligado (linha 6115 + 3600);
  * marca a sala como visitada (Pacote 14, so' usado pelo mapa ASCII). */
 static void entrar_em_sala(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd, Resultado *r) {
-    log_msg(r, "Voce entrou numa nova sala.");
+    log_msg(r, "Você entrou numa nova sala.");
     mapa->celulas[jogador->linha][jogador->coluna].visitada = true;
     narrar_sala(mapa, bd, jogador->linha, jogador->coluna, r);
 
@@ -282,7 +300,7 @@ static void reacao_tripulante_apos_turno(Jogador *jogador, Mapa *mapa, const Bas
         (celula->tripulante_energia_atual < arma->custo_energia || sorteio_chance(CHANCE_FUGA_POR_SORTE));
 
     if (decide_fugir) {
-        log_msg(r, "O %s entra em panico.", tripulante->nome);
+        log_msg(r, "O %s entra em pânico.", tripulante->nome);
         if (!sorteio_chance(CHANCE_PANICO_ESCAPAR)) {
             log_msg(r, "E na tentativa de fugir, cai.");
             return;
@@ -314,11 +332,11 @@ static void reacao_tripulante_apos_turno(Jogador *jogador, Mapa *mapa, const Bas
         }
     }
 
-    log_msg(r, "Acertou em voce. Voce perdeu %d ponto%s de vida.", dano, dano > 1 ? "s" : "");
+    log_msg(r, "Acertou em você. Você perdeu %d ponto%s de vida.", dano, dano > 1 ? "s" : "");
     jogador->vida -= dano;
     if (jogador->vida <= 0) {
         jogador->vida = 0;
-        log_msg(r, "Voce foi mortalmente ferido. O %s roubou-lhe tudo.", tripulante->nome);
+        log_msg(r, "Você foi mortalmente ferido. O %s roubou-lhe tudo.", tripulante->nome);
         r->jogador_morreu = true;
     }
 }
@@ -328,11 +346,11 @@ Resultado combate_seguir_tripulante_fugido(Jogador *jogador, Mapa *mapa, const B
 
     for (int i = 0; i < trilha_fuga_tamanho; i++) {
         if (i > 0 && sorteio_chance(CHANCE_PERSEGUICAO_PERDER)) {
-            log_msg(&r, "Voce o perdeu neste ponto.");
+            log_msg(&r, "Você o perdeu neste ponto.");
             break;
         }
         int d = trilha_fuga[i];
-        log_msg(&r, "Voce o segue pelo lado %s.", direcao_nome((Direcao)d));
+        log_msg(&r, "Você o segue pelo lado %s.", direcao_nome((Direcao)d));
         jogador->linha += DELTA_LINHA[d];
         jogador->coluna += DELTA_COLUNA[d];
     }
@@ -350,13 +368,13 @@ Resultado comando_mover(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd, Dir
     const Celula *atual = &mapa->celulas[jogador->linha][jogador->coluna];
     if (atual->tem_tripulante && atual->tripulante_vivo) {
         const Tripulante *tripulante = &bd->tripulantes[atual->id_tripulante];
-        log_msg(&r, "Nao se arrisque dando as costas ao %s.", tripulante->nome);
+        log_msg(&r, "Não se arrisque dando as costas ao %s.", tripulante->nome);
         r.sucesso = false;
         return r;
     }
 
     if (!atual->conectada[direcao]) {
-        log_msg(&r, "Nao ha saida pelo %s.", direcao_nome(direcao));
+        log_msg(&r, "Não há saída pelo %s.", direcao_nome(direcao));
         r.sucesso = false;
         return r;
     }
@@ -372,19 +390,19 @@ Resultado comando_trocar_arma(Jogador *jogador, const BaseDeDados *bd, int indic
     Resultado r = resultado_vazio();
 
     if (jogador->num_armas_obtidas <= 1) {
-        log_msg(&r, "Voce so tem uma arma.");
+        log_msg(&r, "Você só tem uma arma.");
         r.sucesso = false;
         return r;
     }
 
     if (!jogador_trocar_arma(jogador, indice_no_inventario)) {
-        log_msg(&r, "Indice de arma invalido.");
+        log_msg(&r, "Índice de arma inválido.");
         r.sucesso = false;
         return r;
     }
 
     const Arma *arma = &bd->armas[jogador->armas_obtidas[jogador->arma_atual]];
-    log_msg(&r, "Sua arma agora e: %s.", arma->nome);
+    log_msg(&r, "Sua arma agora é: %s.", arma->nome);
     return r;
 }
 
@@ -398,7 +416,7 @@ Resultado comando_escudo(Jogador *jogador) {
     }
 
     jogador->escudo_ligado = !jogador->escudo_ligado;
-    log_msg(&r, "Agora seu escudo esta %s.", jogador->escudo_ligado ? "ligado" : "desligado");
+    log_msg(&r, "Agora seu escudo está %s.", jogador->escudo_ligado ? "ligado" : "desligado");
     return r;
 }
 
@@ -407,15 +425,15 @@ Resultado comando_usar_medicamento(Jogador *jogador, Mapa *mapa, const BaseDeDad
     bool tinha_medicamento = jogador->num_medicamentos > 0;
 
     if (jogador_usar_medicamento(jogador, cfg->vida_inicial)) {
-        log_msg(&r, "Sente-se melhor? Voce agora tem %d pontos de vida.", jogador->vida);
+        log_msg(&r, "Sente-se melhor? Você agora tem %d pontos de vida.", jogador->vida);
         reacao_tripulante_apos_turno(jogador, mapa, bd, &r);
         return r;
     }
 
     if (tinha_medicamento) {
-        log_msg(&r, "Nao seja hipocondriaco... voce esta bem.");
+        log_msg(&r, "Não seja hipocondríaco... você está bem.");
     } else {
-        log_msg(&r, "Voce nao tem mais medicamentos.");
+        log_msg(&r, "Você não tem mais medicamentos.");
     }
     r.sucesso = false;
     return r;
@@ -424,7 +442,7 @@ Resultado comando_usar_medicamento(Jogador *jogador, Mapa *mapa, const BaseDeDad
 Resultado comando_situacao(const Jogador *jogador, const BaseDeDados *bd) {
     Resultado r = resultado_vazio();
 
-    log_msg(&r, "Situacao");
+    log_msg(&r, "Situação");
     log_msg(&r, "Vida: %d", jogador->vida);
     log_msg(&r, "Medicamentos: %d", jogador->num_medicamentos);
     log_msg(&r, "Energia: %d", jogador->energia);
@@ -444,7 +462,7 @@ Resultado comando_examinar_sala(Jogador *jogador, Mapa *mapa, const Config *cfg,
 
     Celula *celula = &mapa->celulas[jogador->linha][jogador->coluna];
     if (celula->tem_tripulante && celula->tripulante_vivo) {
-        log_msg(&r, "Nao pode examinar a sala com alguem nela.");
+        log_msg(&r, "Não pode examinar a sala com alguém nela.");
         r.sucesso = false;
         return r;
     }
@@ -457,9 +475,9 @@ Resultado comando_examinar_sala(Jogador *jogador, Mapa *mapa, const Config *cfg,
                 return r;
             }
             jogador->energia -= CUSTO_ENERGIA_LANTERNA;
-            log_msg(&r, "Usando a lanterna, voce examina a sala.");
+            log_msg(&r, "Usando a lanterna, você examina a sala.");
         } else {
-            log_msg(&r, "Esta muito escuro aqui.");
+            log_msg(&r, "Está muito escuro aqui.");
             if (sorteio_chance(cfg->chance_acidente_no_escuro)) {
                 acidente_no_escuro(jogador, &r);
                 if (r.jogador_morreu) {
@@ -471,7 +489,16 @@ Resultado comando_examinar_sala(Jogador *jogador, Mapa *mapa, const Config *cfg,
         log_msg(&r, "Que sorte. Existe luz suficiente para examinar a sala sem usar a lanterna.");
     }
 
-    log_msg(&r, "Voce encontrou...");
+    /* Pacote 20: linhas 5170-5180 do original - FOR/NEXT vazio de 1 a 8
+     * antes de "VOCE ENCONTROU...", unico ponto deste pacote com lastro
+     * direto de delay explicito no BASIC (ver management/backlog/
+     * 20-pausas-dramaticas.md). */
+    marcar_pausa(&r);
+    log_msg(&r, "Você encontrou...");
+    /* Pausa entre o anuncio e a revelacao em si (Nada/item) - reconstrucao
+     * de fidelidade a experiencia, sem FOR/NEXT explicito correspondente
+     * no original nesse ponto especifico. */
+    marcar_pausa(&r);
     if (!celula->tem_item || celula->item_coletado) {
         log_msg(&r, "Nada.");
         return r;
@@ -519,19 +546,19 @@ Resultado comando_acionar_teleporte(Jogador *jogador, const Mapa *mapa) {
     Resultado r = resultado_vazio();
 
     if (jogador->linha != mapa->teleporte_linha || jogador->coluna != mapa->teleporte_coluna) {
-        log_msg(&r, "Voce nao se encontra na Sala de Teleporte.");
+        log_msg(&r, "Você não se encontra na Sala de Teleporte.");
         r.sucesso = false;
         return r;
     }
 
     const Celula *celula = &mapa->celulas[jogador->linha][jogador->coluna];
     if (celula->tem_tripulante && celula->tripulante_vivo) {
-        log_msg(&r, "Nao pode usar o teleporte com alguem na sala.");
+        log_msg(&r, "Não pode usar o teleporte com alguém na sala.");
         r.sucesso = false;
         return r;
     }
 
-    log_msg(&r, "Voce voltou via teleporte. Partida encerrada com sucesso.");
+    log_msg(&r, "Você voltou via teleporte. Partida encerrada com sucesso.");
     return r;
 }
 
@@ -545,7 +572,7 @@ Resultado comando_atacar(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd) {
     Celula *celula = &mapa->celulas[jogador->linha][jogador->coluna];
 
     if (!celula->tem_tripulante || !celula->tripulante_vivo) {
-        log_msg(&r, "Atacar quem? Nao ha ninguem aqui.");
+        log_msg(&r, "Atacar quem? Não há ninguém aqui.");
         r.sucesso = false;
         return r;
     }
@@ -554,17 +581,17 @@ Resultado comando_atacar(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd) {
     const Arma *arma = &bd->armas[jogador->armas_obtidas[jogador->arma_atual]];
 
     if (arma->custo_energia > jogador->energia) {
-        log_msg(&r, "Voce nao tem energia suficiente para atacar.");
+        log_msg(&r, "Você não tem energia suficiente para atacar.");
         desligar_escudo_se_sem_energia(jogador, &r);
         r.sucesso = false;
         return r;
     }
 
-    log_msg(&r, "Voce ataca o %s.", tripulante->nome);
+    log_msg(&r, "Você ataca o %s.", tripulante->nome);
     jogador->energia -= arma->custo_energia;
 
     if (!sorteio_chance(arma->chance_acerto_percentual)) {
-        log_msg(&r, "Errou. Ma sorte.");
+        log_msg(&r, "Errou. Má sorte.");
         reacao_tripulante_apos_turno(jogador, mapa, bd, &r);
         return r;
     }
@@ -583,7 +610,7 @@ Resultado comando_atacar(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd) {
     celula->tem_tripulante = false;
 
     if (jogador_adicionar_arma(jogador, tripulante->id_arma)) {
-        log_msg(&r, "Voce recolhe a arma dele: %s.", bd->armas[tripulante->id_arma].nome);
+        log_msg(&r, "Você recolhe a arma dele: %s.", bd->armas[tripulante->id_arma].nome);
     }
 
     int energia_ganha = sorteio_intervalo(ENERGIA_MINIMA_LOOT, ENERGIA_MAXIMA_LOOT);
@@ -595,7 +622,7 @@ Resultado comando_atacar(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd) {
     if (tripulante->agressivo) {
         if (sorteio_chance(CHANCE_LOOT_MEDICAMENTO)) {
             jogador->num_medicamentos++; /* linha 1850: "LET M=M+1" */
-            log_msg(&r, "Tambem encontrou medicamentos.");
+            log_msg(&r, "Também encontrou medicamentos.");
         }
         if (sorteio_chance(CHANCE_LOOT_DINHEIRO)) {
             int dinheiro = sorteio_intervalo(DINHEIRO_MINIMO_LOOT, DINHEIRO_MAXIMO_LOOT);
@@ -618,7 +645,7 @@ Resultado comando_fugir(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd) {
     }
 
     if (!sorteio_chance(CHANCE_FUGIR_SUCESSO)) {
-        log_msg(&r, "Voce tenta fugir, mas cai.");
+        log_msg(&r, "Você tenta fugir, mas cai.");
         reacao_tripulante_apos_turno(jogador, mapa, bd, &r);
         r.sucesso = false;
         return r;
@@ -632,7 +659,7 @@ Resultado comando_fugir(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd) {
         }
     }
     if (n_disponiveis == 0) {
-        log_msg(&r, "Nao ha para onde fugir.");
+        log_msg(&r, "Não há para onde fugir.");
         r.sucesso = false;
         return r;
     }
@@ -645,9 +672,7 @@ Resultado comando_fugir(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd) {
     int energia_tripulante_fugido = celula->tripulante_energia_atual;
 
     int direcao = direcoes_disponiveis[sorteio_intervalo(0, n_disponiveis - 1)];
-    log_msg(&r, "Voce fugiu pelo lado %s.", direcao_nome((Direcao)direcao));
-
-    celula->tem_tripulante = false; /* saiu da sala original de qualquer forma */
+    log_msg(&r, "Você fugiu pelo lado %s.", direcao_nome((Direcao)direcao));
 
     jogador->linha += DELTA_LINHA[direcao];
     jogador->coluna += DELTA_COLUNA[direcao];
@@ -656,16 +681,28 @@ Resultado comando_fugir(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd) {
      * Perseguicao ao fugir, linha 2120 do original: "IF R$(X,Y,7)<>" " OR
      * RND<.5 THEN GOTO 2200" - so' NAO te segue se a sala de destino ja
      * tiver outro tripulante, ou por 50% de sorte; senao ele vem atras
-     * (Pacote 13).
+     * (Pacote 13). Diferente do tripulante fugindo DE voce em combate
+     * (reacao_tripulante_apos_turno / tripulante_fugir_para_outra_sala,
+     * linhas 6800-6870, onde a sala de origem e' sempre limpa
+     * independente do jogador seguir ou nao): aqui a sub-rotina que limpa
+     * a sala de origem (GOSUB 6860, linha 2150) so' roda dentro do ramo
+     * "ele te seguiu" - se ele NAO seguir, R$(D,A,7) nunca e' apagado, ou
+     * seja, o tripulante continua na sala original, vivo (a linha 2090,
+     * GOSUB 6900, ja salva a vida/energia atuais de volta la' antes de
+     * saber se ele vai seguir - so' faz sentido persistir isso se ele
+     * puder continuar ali). Corrigido no Pacote 23: antes `celula->
+     * tem_tripulante` era zerado incondicionalmente aqui, esvaziando a
+     * sala de origem mesmo quando o tripulante nao seguia.
      */
     Celula *destino = &mapa->celulas[jogador->linha][jogador->coluna];
     if (!destino->tem_tripulante && sorteio_chance(CHANCE_TRIPULANTE_SEGUIR_FUGA_JOGADOR)) {
+        celula->tem_tripulante = false;
         destino->tem_tripulante = true;
         destino->id_tripulante = id_tripulante_fugido;
         destino->tripulante_vivo = true;
         destino->tripulante_vida_atual = vida_tripulante_fugido;
         destino->tripulante_energia_atual = energia_tripulante_fugido;
-        log_msg(&r, "Infelizmente o %s veio atras de voce.", bd->tripulantes[id_tripulante_fugido].nome);
+        log_msg(&r, "Infelizmente o %s veio atrás de você.", bd->tripulantes[id_tripulante_fugido].nome);
     }
 
     entrar_em_sala(jogador, mapa, bd, &r);
@@ -677,14 +714,14 @@ Resultado comando_comunicar(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd,
     Celula *celula = &mapa->celulas[jogador->linha][jogador->coluna];
 
     if (!celula->tem_tripulante || !celula->tripulante_vivo) {
-        log_msg(&r, "Falando consigo mesmo... e o primeiro sinal de loucura.");
+        log_msg(&r, "Falando consigo mesmo... é o primeiro sinal de loucura.");
         r.sucesso = false;
         return r;
     }
 
     const Tripulante *tripulante = &bd->tripulantes[celula->id_tripulante];
     if (!tripulante->agressivo) {
-        log_msg(&r, "O %s e pouco inteligente para comunicar-se.", tripulante->nome);
+        log_msg(&r, "O %s é pouco inteligente para comunicar-se.", tripulante->nome);
         r.sucesso = false;
         return r;
     }
@@ -692,18 +729,18 @@ Resultado comando_comunicar(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd,
     switch (acao) {
         case COMUNICAR_SUBORNAR:
             if (valor_oferecido > jogador->dinheiro) {
-                log_msg(&r, "Voce nao tem todo esse dinheiro.");
+                log_msg(&r, "Você não tem todo esse dinheiro.");
                 r.sucesso = false;
                 return r;
             }
-            log_msg(&r, "Esta pensando...");
+            log_msg(&r, "Está pensando...");
             if (valor_oferecido > sorteio_intervalo(0, SUBORNO_LIMIAR_MAXIMO)) {
                 jogador->dinheiro -= valor_oferecido;
                 log_msg(&r, "Aceita, deixando-o em paz.");
                 celula->tem_tripulante = false;
                 return r;
             }
-            log_msg(&r, "E decide nao aceitar.");
+            log_msg(&r, "E decide não aceitar.");
             r.sucesso = false;
             reacao_tripulante_apos_turno(jogador, mapa, bd, &r);
             return r;
@@ -714,7 +751,7 @@ Resultado comando_comunicar(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd,
                 celula->tem_tripulante = false;
                 return r;
             }
-            log_msg(&r, "Nao gostou da sua atitude agressiva.");
+            log_msg(&r, "Não gostou da sua atitude agressiva.");
             r.sucesso = false;
             reacao_tripulante_apos_turno(jogador, mapa, bd, &r);
             return r;
@@ -723,11 +760,11 @@ Resultado comando_comunicar(Jogador *jogador, Mapa *mapa, const BaseDeDados *bd,
             if (sorteio_chance(CHANCE_AMIGAVEL_SUCESSO) || celula->tripulante_vida_atual < VIDA_AMIGAVEL_GARANTIDO) {
                 int dinheiro = sorteio_intervalo(DINHEIRO_MINIMO_AMIGAVEL, DINHEIRO_MAXIMO_AMIGAVEL);
                 jogador->dinheiro += dinheiro;
-                log_msg(&r, "O %s achou voce um cara legal, deu-lhe A$ %d.00 e foi embora.", tripulante->nome, dinheiro);
+                log_msg(&r, "O %s achou você um cara legal, deu-lhe A$ %d.00 e foi embora.", tripulante->nome, dinheiro);
                 celula->tem_tripulante = false;
                 return r;
             }
-            log_msg(&r, "Nao gosta do seu sorriso.");
+            log_msg(&r, "Não gosta do seu sorriso.");
             r.sucesso = false;
             reacao_tripulante_apos_turno(jogador, mapa, bd, &r);
             return r;

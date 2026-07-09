@@ -34,6 +34,7 @@ typedef struct {
     int vida_inicial;
     int energia_inicial;
     int dinheiro_inicial;
+    int medicamentos_iniciais;
 
     int chance_tripulante_na_sala;
     int chance_item_na_sala;

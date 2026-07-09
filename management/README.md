@@ -59,10 +59,13 @@ P0 (scaffold) → P1 (dados JSON) → P2 (types/util) → P3 (data_loader)
 | 14 | [backlog/14-mapa-ascii.md](backlog/14-mapa-ascii.md) | S | P10 | [x] |
 | 15 | [backlog/15-narrar-arma-tripulante.md](backlog/15-narrar-arma-tripulante.md) | S | P10 | [x] |
 | 16 | [backlog/16-bug-acentos-linux.md](backlog/16-bug-acentos-linux.md) | S | P10 | [x] |
-| 17 | [backlog/17-mapa-continuo.md](backlog/17-mapa-continuo.md) | M | P14 | [ ] |
-| 18 | [backlog/18-atalho-setas.md](backlog/18-atalho-setas.md) | S | P6a, P7 | [ ] |
-| 19 | [backlog/19-remover-espera-ajuda-mapa.md](backlog/19-remover-espera-ajuda-mapa.md) | S | P11, P14 | [ ] |
-| 20 | [backlog/20-pausas-dramaticas.md](backlog/20-pausas-dramaticas.md) | M | P6a, P15 | [ ] |
+| 17 | [backlog/17-mapa-continuo.md](backlog/17-mapa-continuo.md) | M | P14 | [x] |
+| 18 | [backlog/18-atalho-setas.md](backlog/18-atalho-setas.md) | S | P6a, P7 | [x] |
+| 19 | [backlog/19-remover-espera-ajuda-mapa.md](backlog/19-remover-espera-ajuda-mapa.md) | S | P11, P14 | [x] |
+| 20 | [backlog/20-pausas-dramaticas.md](backlog/20-pausas-dramaticas.md) | M | P6a, P15 | [x] |
+| 21 | [backlog/21-migracao-cmake.md](backlog/21-migracao-cmake.md) | S | P9, P16 | [x] |
+| 22 | [backlog/22-medicamentos-iniciais.md](backlog/22-medicamentos-iniciais.md) | S | P12 | [x] |
+| 23 | [backlog/23-fugir-nao-seguido.md](backlog/23-fugir-nao-seguido.md) | S | P13 | [x] |
 
 ## Depois do backlog
 

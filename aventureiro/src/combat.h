@@ -31,6 +31,14 @@
  */
 typedef struct {
     char mensagens[MAX_MENSAGENS_RESULTADO][MAX_TAMANHO_MENSAGEM];
+    /* Pacote 20: pausa dramatica de ~1s apos esta mensagem, antes da
+     * proxima - narrar() (game.c) checa isso entre cada ui_log(). Ponto
+     * com lastro direto no original: o FOR/NEXT vazio antes de "VOCE
+     * ENCONTROU..." (linha 5170-5180). Os demais pontos marcados
+     * reconstroem a mesma sensacao onde o original nao tem um delay
+     * proposital explicito (so' processamento de RAND USR genuinamente
+     * lento no ZX81) - ver management/backlog/20-pausas-dramaticas.md. */
+    bool pausa_apos[MAX_MENSAGENS_RESULTADO];
     int num_mensagens;
     bool sucesso;
     bool jogador_morreu;

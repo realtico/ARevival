@@ -25,7 +25,10 @@ Jogador jogador_iniciar(const Config *cfg, const Mapa *mapa) {
     jogador.arma_atual = 0;
     jogador_adicionar_arma(&jogador, 2); /* Pistola Laser - equivalente as linhas 330-370 do original */
 
-    jogador.num_medicamentos = 0;
+    /* Linha 27 do original: "LET M=VAL "5"" - a variavel M (medicamentos)
+     * comeca em 5 e nunca e' reatribuida antes do jogador nascer na Sala
+     * de Teleporte, entao a partida de fato comeca com 5, nao 0. */
+    jogador.num_medicamentos = cfg->medicamentos_iniciais;
     jogador.escudo_ligado = false;
 
     return jogador;

@@ -8,7 +8,9 @@
     "_comment": "Estado inicial do jogador ao nascer na Sala de Teleporte.",
     "vida_inicial": 20,
     "energia_inicial": 200,
-    "dinheiro_inicial": 0
+    "dinheiro_inicial": 0,
+    "medicamentos_iniciais": 5,
+    "_comment_medicamentos_iniciais": "Original comeca com 5, nao 0 (aventureiro.p.bas linha 27: 'LET M=VAL \"5\"', variavel M nunca reatribuida entre esta linha e o inicio da partida de fato). Descoberto e corrigido apos o Pacote 20 - a porta ate entao inicializava num_medicamentos = 0 direto em player.c."
   },
 
   "chances_percentual": {
